@@ -1,15 +1,28 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
+using Random = UnityEngine.Random;
+
 
 public class TileGeneration : MonoBehaviour {
+	public enum Direction {
+		North,
+		South,
+		East,
+		West
+	}
+	public class TileMapStore : Dictionary<(float, float), Dictionary<Direction, GameObject>> {}
+
 	[SerializeField] public GameObject wallPrefab;
 
 	[SerializeField] public GameObject player;
 	// using TileData = ;
 
-	private Dictionary<(float, float), Dictionary<Direction, GameObject>> tileMap = new();
+	private TileMapStore tileMap = new();
+	private TileMapStore newTileMap = new();
+	
+	
 	
 	private readonly Dictionary<Direction,Vector2> directionOffsets = new() {
 		{ Direction.North, Vector2.up / 2},
@@ -17,11 +30,7 @@ public class TileGeneration : MonoBehaviour {
 		{ Direction.East, Vector2.left / 2},
 		{ Direction.West, Vector2.right /2},
 	};
-
-	// Start is called before the first frame update
-	private void Start() {
-	}
-
+	
 	// Update is called once per frame
 	private void Update() {
 		GenerateTile();
@@ -32,7 +41,7 @@ public class TileGeneration : MonoBehaviour {
 		var centerPoint = player.transform.position;
 		const int gridSize = 10;
 		
-		Dictionary<(float, float), Dictionary<Direction, GameObject>> newTileMap = new();
+		newTileMap = new();
 
 		for (var xPointIndex = Mathf.RoundToInt(centerPoint.x - gridSize / 2.0f);
 		     xPointIndex < Mathf.RoundToInt(centerPoint.x + gridSize / 2.0f);
@@ -42,12 +51,12 @@ public class TileGeneration : MonoBehaviour {
 		     yPointIndex++) {
 			(float, float) key = (xPointIndex, yPointIndex);
 
-			if (tileMap.ContainsKey(key)) continue;
+			if (CheckIfExists(tileMap,newTileMap,key)) continue;
 
 			var tileWallMap = new Dictionary<Direction, GameObject>();
 			
 			
-			foreach (var (direction,offset) in directionOffsets) {
+			foreach (var (direction, offset) in directionOffsets) {
 				// 75% chance of air
 				if (!(Random.Range(0.0f, 1.0f) >= 0.75)) continue;
 				
@@ -65,18 +74,15 @@ public class TileGeneration : MonoBehaviour {
 				var rotation = Quaternion.identity;
 				rotation *= Quaternion.Euler(0, offset.y != 0 ? 90 : 0, 0);
 				var finalVector3 = new Vector3(xPointIndex + offset.x, 0.5f, yPointIndex + offset.y);
-				if (!newTileMap.ContainsKey(key)) {
-					tileWallMap.Add(direction, Instantiate(wallPrefab, finalVector3, rotation));
-				};
+				tileWallMap.Add(direction, Instantiate(wallPrefab, finalVector3, rotation));
 			}
 			newTileMap.Add(key, tileWallMap);
 				
 		}
-		
+		Debug.Break();
 		// Generated tiles, now lets remove old ones
 		foreach (var (point, walls) in tileMap) {
 			if (!newTileMap.ContainsKey(point)) {
-				Debug.Log("Wall Object yeeted" + point);
 				foreach (var wallObject in walls.Values) {
 					Destroy(wallObject);
 				}
@@ -86,13 +92,11 @@ public class TileGeneration : MonoBehaviour {
 		tileMap = newTileMap;
 
 	}
-	private enum Direction {
-		North,
-		South,
-		East,
-		West
-	}
 
+	private bool CheckIfExists(TileMapStore oldTileMap, TileMapStore newTileMap,(float,float) key)
+	{
+		return oldTileMap.ContainsKey(key) || newTileMap.ContainsKey(key);
+	}
 	private Direction FlipDirection(Direction start) {
 		switch (start) {
 			case Direction.North:
