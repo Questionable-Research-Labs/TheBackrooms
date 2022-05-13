@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Random = UnityEngine.Random;
@@ -39,7 +40,7 @@ public class TileGeneration : MonoBehaviour {
 
 	private void GenerateTile() {
 		var centerPoint = player.transform.position;
-		const int gridSize = 10;
+		const int gridSize = 50;
 		
 		newTileMap = new();
 
@@ -78,16 +79,34 @@ public class TileGeneration : MonoBehaviour {
 			newTileMap.Add(key, tileWallMap);		
 		}
 		
+		Debug.Log("New map count" + newTileMap.Count);
+		Debug.Log($"Old map count {tileMap.Count}");
+		
 		// Generated tiles, now lets remove old ones
+	
+
+		foreach (var (point, walls) in newTileMap)
+		{
+			if (!tileMap.ContainsKey(point))
+			{
+				tileMap.Add(point,walls);
+			}
+		}
+		
+		List<(float,float)> points_to_yeet = new();
 		foreach (var (point, walls) in tileMap) {
 			if (!newTileMap.ContainsKey(point)) {
 				foreach (var wallObject in walls.Values) {
 					Destroy(wallObject);
 				}
+				points_to_yeet.Add(point);
+
 			}
 		}
+		
+		points_to_yeet.ForEach(point => tileMap.Remove(point));
 		// Now replace old map
-		tileMap = newTileMap;
+		// tileMap = newTileMap;
 
 	}
 
