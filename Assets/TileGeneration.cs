@@ -62,24 +62,22 @@ public class TileGeneration : MonoBehaviour {
 				
 				// Make sure there is not a room next door already with a wall
 				(float, float) neighbourTileKey = (key.Item1 + offset.x, key.Item2 + offset.y);
-				if (tileMap.ContainsKey(neighbourTileKey)) {
-					var neighbourTile = tileMap[neighbourTileKey];
-					if (neighbourTile.ContainsKey(FlipDirection(direction))) continue;
-				} else if (newTileMap.ContainsKey(neighbourTileKey)) {
+				if (newTileMap.ContainsKey(neighbourTileKey)) {
 					var neighbourTile = newTileMap[neighbourTileKey];
 					if (neighbourTile.ContainsKey(FlipDirection(direction))) continue;
 				}
+
 				// Empty Spot
-					
 				var rotation = Quaternion.identity;
 				rotation *= Quaternion.Euler(0, offset.y != 0 ? 90 : 0, 0);
 				var finalVector3 = new Vector3(xPointIndex + offset.x, 0.5f, yPointIndex + offset.y);
-				tileWallMap.Add(direction, Instantiate(wallPrefab, finalVector3, rotation));
+				if (!tileMap.ContainsKey(key)) {
+					tileWallMap.Add(direction, Instantiate(wallPrefab, finalVector3, rotation));
+				}
 			}
-			newTileMap.Add(key, tileWallMap);
-				
+			newTileMap.Add(key, tileWallMap);		
 		}
-		Debug.Break();
+		
 		// Generated tiles, now lets remove old ones
 		foreach (var (point, walls) in tileMap) {
 			if (!newTileMap.ContainsKey(point)) {
@@ -95,7 +93,7 @@ public class TileGeneration : MonoBehaviour {
 
 	private bool CheckIfExists(TileMapStore oldTileMap, TileMapStore newTileMap,(float,float) key)
 	{
-		return oldTileMap.ContainsKey(key) || newTileMap.ContainsKey(key);
+		return newTileMap.ContainsKey(key);
 	}
 	private Direction FlipDirection(Direction start) {
 		switch (start) {
