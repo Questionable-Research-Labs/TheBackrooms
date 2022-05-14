@@ -16,8 +16,13 @@ public class TileGeneration : MonoBehaviour {
 	public class TileMapStore : Dictionary<(float, float), Dictionary<Direction, GameObject>> {}
 
 	[SerializeField] public GameObject wallPrefab;
+	public float wallSpawnHeight = 0.49f;
+	
+	[Range(0.0f, 1.0f)]
+	public float chanceOfWall = 0.75f;
+	
+	public int gridSize = 50;
 
-	[SerializeField] public GameObject player;
 	// using TileData = ;
 
 	private TileMapStore tileMap = new();
@@ -32,15 +37,13 @@ public class TileGeneration : MonoBehaviour {
 		{ Direction.West, Vector2.right /2},
 	};
 	
-	// Update is called once per frame
-	private void Update() {
-		GenerateTile();
+	private void Start() {
+		// definitely nothing special about 0.177013, shut.
+		InvokeRepeating(nameof(GenerateTile), 0, 0.177013f);
 	}
 
-
 	private void GenerateTile() {
-		var centerPoint = player.transform.position;
-		const int gridSize = 50;
+		var centerPoint = transform.position;
 		
 		newTileMap = new();
 
@@ -52,14 +55,14 @@ public class TileGeneration : MonoBehaviour {
 		     yPointIndex++) {
 			(float, float) key = (xPointIndex, yPointIndex);
 
-			if (CheckIfExists(tileMap,newTileMap,key)) continue;
+			if (newTileMap.ContainsKey(key)) continue;
 
 			var tileWallMap = new Dictionary<Direction, GameObject>();
 			
 			
 			foreach (var (direction, offset) in directionOffsets) {
 				// 75% chance of air
-				if (!(Random.Range(0.0f, 1.0f) >= 0.75)) continue;
+				if (!(Random.Range(0.0f, 1.0f) >= chanceOfWall)) continue;
 				
 				// Make sure there is not a room next door already with a wall
 				(float, float) neighbourTileKey = (key.Item1 + offset.x, key.Item2 + offset.y);
@@ -71,17 +74,14 @@ public class TileGeneration : MonoBehaviour {
 				// Empty Spot
 				var rotation = Quaternion.identity;
 				rotation *= Quaternion.Euler(0, offset.y != 0 ? 90 : 0, 0);
-				var finalVector3 = new Vector3(xPointIndex + offset.x, 0.5f, yPointIndex + offset.y);
+				var finalVector3 = new Vector3(xPointIndex + offset.x, wallSpawnHeight, yPointIndex + offset.y);
 				if (!tileMap.ContainsKey(key)) {
 					tileWallMap.Add(direction, Instantiate(wallPrefab, finalVector3, rotation));
 				}
 			}
 			newTileMap.Add(key, tileWallMap);		
 		}
-		
-		Debug.Log("New map count" + newTileMap.Count);
-		Debug.Log($"Old map count {tileMap.Count}");
-		
+
 		// Generated tiles, now lets remove old ones
 	
 
@@ -110,10 +110,6 @@ public class TileGeneration : MonoBehaviour {
 
 	}
 
-	private bool CheckIfExists(TileMapStore oldTileMap, TileMapStore newTileMap,(float,float) key)
-	{
-		return newTileMap.ContainsKey(key);
-	}
 	private Direction FlipDirection(Direction start) {
 		switch (start) {
 			case Direction.North:
