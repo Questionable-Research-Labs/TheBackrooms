@@ -16,7 +16,7 @@ public class TileGeneration : MonoBehaviour {
 	public class TileMapStore : Dictionary<(float, float), Dictionary<Direction, GameObject>> {}
 
 	[SerializeField] public GameObject wallPrefab;
-
+	[SerializeField] private float airPercent;
 	[SerializeField] public GameObject player;
 	// using TileData = ;
 
@@ -58,8 +58,8 @@ public class TileGeneration : MonoBehaviour {
 			
 			
 			foreach (var (direction, offset) in directionOffsets) {
-				// 75% chance of air
-				if (!(Random.Range(0.0f, 1.0f) >= 0.75)) continue;
+				// [airPercent] chance of air
+				if (!(Random.Range(0.0f, 1.0f) >= airPercent/100)) continue;
 				
 				// Make sure there is not a room next door already with a wall
 				(float, float) neighbourTileKey = (key.Item1 + offset.x, key.Item2 + offset.y);
@@ -79,8 +79,8 @@ public class TileGeneration : MonoBehaviour {
 			newTileMap.Add(key, tileWallMap);		
 		}
 		
-		Debug.Log("New map count" + newTileMap.Count);
-		Debug.Log($"Old map count {tileMap.Count}");
+		//Debug.Log("New map count" + newTileMap.Count);
+		//Debug.Log($"Old map count {tileMap.Count}");
 		
 		// Generated tiles, now lets remove old ones
 	
