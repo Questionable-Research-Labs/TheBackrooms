@@ -28,10 +28,10 @@ public class FloorGen : MonoBehaviour
 
         for (var xPointIndex = Mathf.RoundToInt(centerPoint.x - gridSize / 2.0f);
              xPointIndex < Mathf.RoundToInt(centerPoint.x + gridSize / 2.0f);
-             xPointIndex++)
+             xPointIndex+=10)
         for (var yPointIndex = Mathf.RoundToInt(centerPoint.z - gridSize / 2.0f);
              yPointIndex < Mathf.RoundToInt(centerPoint.z + gridSize / 2.0f);
-             yPointIndex++)
+             yPointIndex+=10)
         {
             (float, float) key = (xPointIndex, yPointIndex);
 

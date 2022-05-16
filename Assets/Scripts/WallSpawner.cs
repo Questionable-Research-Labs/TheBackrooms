@@ -66,7 +66,10 @@ public class WallSpawner : MonoBehaviour
 			
 			foreach (var (direction, offset) in directionOffsets) {
 				// [airPercent] chance of air
+
 				if (!(Random.Range(0.0f, 1.0f) >= airPercent/100)) continue;
+
+				// bool requireWall = CheckNeighboringTiles(key);
 				
 				// Make sure there is not a room next door already with a wall
 				(float, float) neighbourTileKey = (key.Item1 + offset.x, key.Item2 + offset.y);
@@ -74,7 +77,7 @@ public class WallSpawner : MonoBehaviour
 					var neighbourTile = newTileMap[neighbourTileKey];
 					if (neighbourTile.ContainsKey(FlipDirection(direction))) continue;
 				}
-
+				
 				// Empty Spot
 				var rotation = Quaternion.identity;
 				rotation *= Quaternion.Euler(0, offset.y != 0 ? 90 : 0, 0);
@@ -114,6 +117,27 @@ public class WallSpawner : MonoBehaviour
 		vaishPoints.ForEach(point => tileMap.Remove(point));
     }
 
+    /*
+    private bool CheckNeighboringTiles((float, float) key)
+    {
+	    foreach (var (direction, offset) in directionOffsets)
+	    {
+		    (float, float) neighbourTileKey = (key.Item1 + offset.x, key.Item2 + offset.y);
+		    if (newTileMap.ContainsKey(neighbourTileKey)) {
+			    var neighbourTile = newTileMap[neighbourTileKey];
+			    if(neighbourTile[direction] == null) continue;
+			    if(neighbourTile[direction].name.StartsWith("door") | neighbourTile[direction].name.StartsWith("gap"))
+			    {
+				    Debug.Log("door");
+				    return true;
+			    }
+		    }
+	    }
+
+	    return false;
+    }
+    */
+    
     private GameObject ChooseWallVariant()
     {
 	    // Yes I know this is inefficient, it's basically AI at this point 
